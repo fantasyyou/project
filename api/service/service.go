@@ -63,7 +63,7 @@ func(service *Service) Insert(order *model.DemoOrder) (id int,err error){
 
 //修改数据  http://localhost:8000/user/update
 func(service *Service) Update(order *model.DemoOrder) (updateOrder model.DemoOrder, err error){
-	service.dao.Update(order)
+	updateOrder, _ = service.dao.Update(order)
 	if err != nil {
 		return
 	}
