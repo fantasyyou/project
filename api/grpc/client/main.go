@@ -2,22 +2,19 @@ package main
 
 import (
 	"context"
-	pb "gin/proto"
+	pb "gin/api/grpc/proto"
 	"google.golang.org/grpc"
 	"log"
-	"os"
 	"time"
 )
 
 const (
-	address     = "localhost:50051"
-	defaultName = "world"
-	username    = "6"
-	sort        = "time"
-	id          = "146"
-    information = "800,800,800,800,800"
-	update      = "152,1000,1000,1000"
-
+	address  = "localhost:50051"
+	orderno  = "500"
+	username = "500"
+	amount   = "500"
+	status   = "500"
+	fileurl  = "500"
 )
 
 func main() {
@@ -29,16 +26,11 @@ func main() {
 	defer conn.Close()
 	c := pb.NewSimpleClient(conn)
 
-	// Contact the server and print out its response.
-	name := update
-	if len(os.Args) > 1 {
-		name = os.Args[1]
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.DownLoad(ctx, &pb.HelloRequest{Name: name})
+	r, err := c.Insert(ctx, &pb.InsertRequest{Orderno:orderno,Username:username,Amount:amount,Status:status,Fileurl:fileurl})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Printf("Greeting: %s", r.GetMessage())
+	log.Printf("Greeting: %s", r.GetId())
 }
