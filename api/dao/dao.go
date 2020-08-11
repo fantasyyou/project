@@ -11,7 +11,7 @@ type Dao struct {
 }
 
 //添加数据
-func (d *Dao) Insert(order *model.DemoOrder) (id int,err error){
+func (d *Dao) Insert(order *model.DemoOrder) (id int64,err error){
 
 	var student model.Student
 	student.Number="20163512"

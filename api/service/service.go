@@ -53,7 +53,7 @@ func(service *Service) Get(id int) (order model.DemoOrder, err error){
 }
 
 //添加数据 http://localhost:8000/user/add
-func(service *Service) Insert(order *model.DemoOrder) (id int,err error){
+func(service *Service) Insert(order *model.DemoOrder) (id int64,err error){
 	id, err = service.dao.Insert(order)
 	if err != nil {
 		return
@@ -151,13 +151,13 @@ func(service *Service) ExcelDownLoad(c *gin.Context) (err error){
 	for i:=0 ; i <len(result); i++ {
 		row := sheet.AddRow()
 		cell := row.AddCell()
-		cell.Value = strconv.Itoa(result[i].Id)
+		cell.Value = strconv.FormatInt(result[i].Id,10)
 		cell = row.AddCell()
 		cell.Value = result[i].Orderno
 		cell = row.AddCell()
 		cell.Value = result[i].Username
 		cell = row.AddCell()
-		cell.Value = strconv.FormatFloat(result[i].Amount, 'E', -1, 64)
+		cell.Value = strconv.FormatFloat(float64(result[i].Amount), 'E', -1, 32)
 		cell = row.AddCell()
 		cell.Value = result[i].Status
 		cell = row.AddCell()

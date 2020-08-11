@@ -17,7 +17,8 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SimpleClient interface {
-	Insert(ctx context.Context, in *InsertRequest, opts ...grpc.CallOption) (*InsertReplay, error)
+	Insert(ctx context.Context, in *InsertOrder, opts ...grpc.CallOption) (*InsertReplay, error)
+	Query(ctx context.Context, in *Request, opts ...grpc.CallOption) (*OrderList, error)
 }
 
 type simpleClient struct {
@@ -28,9 +29,18 @@ func NewSimpleClient(cc grpc.ClientConnInterface) SimpleClient {
 	return &simpleClient{cc}
 }
 
-func (c *simpleClient) Insert(ctx context.Context, in *InsertRequest, opts ...grpc.CallOption) (*InsertReplay, error) {
+func (c *simpleClient) Insert(ctx context.Context, in *InsertOrder, opts ...grpc.CallOption) (*InsertReplay, error) {
 	out := new(InsertReplay)
 	err := c.cc.Invoke(ctx, "/Simple/Insert", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *simpleClient) Query(ctx context.Context, in *Request, opts ...grpc.CallOption) (*OrderList, error) {
+	out := new(OrderList)
+	err := c.cc.Invoke(ctx, "/Simple/Query", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -41,15 +51,19 @@ func (c *simpleClient) Insert(ctx context.Context, in *InsertRequest, opts ...gr
 // All implementations must embed UnimplementedSimpleServer
 // for forward compatibility
 type SimpleServer interface {
-	Insert(context.Context, *InsertRequest) (*InsertReplay, error)
+	Insert(context.Context, *InsertOrder) (*InsertReplay, error)
+	Query(context.Context, *Request) (*OrderList, error)
 }
 
 // UnimplementedSimpleServer must be embedded to have forward compatible implementations.
 type UnimplementedSimpleServer struct {
 }
 
-func (*UnimplementedSimpleServer) Insert(context.Context, *InsertRequest) (*InsertReplay, error) {
+func (*UnimplementedSimpleServer) Insert(context.Context, *InsertOrder) (*InsertReplay, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Insert not implemented")
+}
+func (*UnimplementedSimpleServer) Query(context.Context, *Request) (*OrderList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Query not implemented")
 }
 func (*UnimplementedSimpleServer) mustEmbedUnimplementedSimpleServer() {}
 
@@ -58,7 +72,7 @@ func RegisterSimpleServer(s *grpc.Server, srv SimpleServer) {
 }
 
 func _Simple_Insert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InsertRequest)
+	in := new(InsertOrder)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -70,7 +84,25 @@ func _Simple_Insert_Handler(srv interface{}, ctx context.Context, dec func(inter
 		FullMethod: "/Simple/Insert",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SimpleServer).Insert(ctx, req.(*InsertRequest))
+		return srv.(SimpleServer).Insert(ctx, req.(*InsertOrder))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Simple_Query_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SimpleServer).Query(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Simple/Query",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SimpleServer).Query(ctx, req.(*Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -82,6 +114,10 @@ var _Simple_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Insert",
 			Handler:    _Simple_Insert_Handler,
+		},
+		{
+			MethodName: "Query",
+			Handler:    _Simple_Query_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
